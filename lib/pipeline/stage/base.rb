@@ -40,7 +40,7 @@ module Pipeline
     # the stage to a :failed state.
     #
     # == State Transitions
-    # 
+    #
     # The following diagram represents the state transitions a stage instance can
     # go through during its life-cycle:
     #
@@ -56,7 +56,7 @@ module Pipeline
     # [:failed]      If an error occurs, the stage goes into this stage.
     #
     # == Callbacks
-    # 
+    #
     # You can define custom callbacks to be called before (+before_stage+) and after
     # (+after_stage+) executing a stage. Example:
     #
@@ -66,7 +66,7 @@ module Pipeline
     #     def run
     #       puts "Slicing..."
     #     end
-    #     
+    #
     #     protected
     #     def wash_ingredients
     #       puts "Washing..."
@@ -91,7 +91,7 @@ module Pipeline
     #   end
     #
     #   Pipeline.start(MakeDinnerPipeline.new)
-    # 
+    #
     # Outputs:
     #   Washing...
     #   Slicing...
@@ -103,7 +103,7 @@ module Pipeline
     # +ActiveRecord+ callback.
     class Base < ActiveRecord::Base
       set_table_name :pipeline_stages
-      
+
       # :not_started ---> :in_progress ---> :completed
       #                       ^ |
       #                       | v
@@ -111,13 +111,13 @@ module Pipeline
       symbol_attr :status
       transactional_attr :status
       private :status=
-      
+
       # Allows access to the associated pipeline
       belongs_to :pipeline, :class_name => "Pipeline::Base", :foreign_key => 'pipeline_instance_id'
-            
+
       class_inheritable_accessor :default_name, :instance_writer => false
 
-      define_callbacks :before_stage, :after_stage
+      define_model_callbacks :stage
 
       @@chain = []
       # Method used for chaining stages on a pipeline sequence. Please refer to
@@ -126,7 +126,7 @@ module Pipeline
         @@chain << self
         next_stage
       end
-      
+
       # Method used by Pipeline::Base to construct its chain of stages. Please
       # refer to Pipeline::Base
       def self.build_chain
@@ -134,7 +134,7 @@ module Pipeline
         @@chain = []
         chain
       end
-      
+
       # Standard ActiveRecord callback to setup initial name and status
       # when a new stage is instantiated. If you override this callback, make
       # sure to call +super+:
@@ -145,20 +145,21 @@ module Pipeline
       #       self[:special_attribute] ||= "standard value"
       #     end
       #   end
-      def after_initialize
+      after_initialize :init_stages
+      def init_stages
         if new_record?
           self[:status] = :not_started
           self.name ||= (default_name || self.class).to_s
         end
       end
-      
+
       # Returns <tt>true</tt> if the stage is in a :completed state, <tt>false</tt>
       # otherwise.
       def completed?
         status == :completed
       end
-      
-      # Standard method called when executing this stage. Raises   
+
+      # Standard method called when executing this stage. Raises
       # InvalidStatusError if stage is in an invalid state for execution (e.g.
       # already completed, or in progress).
       #
@@ -188,7 +189,7 @@ module Pipeline
       def run
         raise "This method must be implemented by any subclass of Pipeline::Stage::Base"
       end
-      
+
       private
       def _setup
         self.attempts += 1
@@ -199,3 +200,4 @@ module Pipeline
     end
   end
 end
+

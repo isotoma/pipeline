@@ -1,106 +1,36 @@
-require 'rubygems'
-require 'rake'
+require 'rspec/core/rake_task'
+require 'yard'
 
-begin
-  require 'jeweler'
-  Jeweler::Tasks.new do |gem|
-    gem.name = "pipeline"
-    gem.summary  = "A Rails plugin/gem to run asynchronous processes in a configurable pipeline"
-    gem.email = "danilo@dtsato.com"
-    gem.homepage = "http://github.com/dtsato/pipeline"
-    gem.authors = ["Danilo Sato"]
-    gem.description = "Pipeline is a Rails plugin/gem to run asynchronous processes in a configurable pipeline."
+YARD::Rake::YardocTask.new
 
-    gem.has_rdoc = true
-    gem.rdoc_options = ["--main", "README.rdoc", "--inline-source", "--line-numbers"]
-    gem.extra_rdoc_files = ["README.rdoc"]
+desc 'Test, build and install the gem'
+task :default => [:spec, :install]
 
-    gem.test_files = Dir['spec/**/*'] + Dir['spec/*']
-    
-    gem.add_dependency('activerecord', '>= 2.0')
-    gem.add_dependency('delayed_job', '>= 1.8.0')
-    
-    gem.rubyforge_project = "pipeline"
-  end
-  
-  Jeweler::GemcutterTasks.new
-
-rescue LoadError
-  puts "Jeweler (or a dependency) not available. Install it with: sudo gem install jeweler"
+RSpec::Core::RakeTask.new do |t|
+  t.pattern = './spec/**/*_spec.rb'
 end
 
-# These are new tasks
-begin
-  require 'rake/contrib/sshpublisher'
-  namespace :rubyforge do
+desc 'Build and install the gem'
+task :install do
+  gemspec_path = Dir['*.gemspec'].first
+  spec = eval(File.read(gemspec_path))
 
-    desc "Release gem and RDoc documentation to RubyForge"
-    task :release => ["rubyforge:release:gem", "rubyforge:release:docs"]
-
-    namespace :release do
-      desc "Publish RDoc to RubyForge."
-      task :docs => [:rdoc] do
-        config = YAML.load(
-            File.read(File.expand_path('~/.rubyforge/user-config.yml'))
-        )
-
-        host = "#{config['username']}@rubyforge.org"
-        remote_dir = "/var/www/gforge-projects/pipeline/"
-        local_dir = 'rdoc'
-
-        Rake::SshDirPublisher.new(host, remote_dir, local_dir).upload
-      end
-    end
-  end
-rescue LoadError
-  puts "Rake SshDirPublisher is unavailable or your rubyforge environment is not configured."
-end
-
-require 'spec/rake/spectask'
-Spec::Rake::SpecTask.new(:spec) do |spec|
-  spec.libs << 'lib' << 'spec'
-  spec.spec_files = FileList['spec/**/*_spec.rb']
-  spec.spec_opts = ['--options', "\"spec/spec.opts\""]
-end
-
-Spec::Rake::SpecTask.new(:rcov) do |spec|
-  spec.libs << 'lib' << 'spec'
-  spec.pattern = 'spec/**/*_spec.rb'
-  spec.rcov_opts = lambda do
-    IO.readlines("spec/rcov.opts").map {|l| l.chomp.split " "}.flatten
-  end
-  spec.rcov = true
-end
-
-begin
-  require "synthesis/task"
-
-  desc "Run Synthesis on specs"
-  Synthesis::Task.new("spec:synthesis") do |t|
-    t.adapter = :rspec
-    t.pattern = 'spec/**/*_spec.rb'
-    t.ignored = ['Pipeline::FakePipeline', 'Delayed::Job', 'SampleStage', 'Logger']
-  end
-rescue LoadError
-  desc 'Synthesis rake task not available'
-  task "spec:synthesis" do
-    abort 'Synthesis rake task is not available. Be sure to install synthesis as a gem'
-  end
-end
-
-require 'rake/rdoctask'
-Rake::RDocTask.new do |rdoc|
-  if File.exist?('VERSION.yml')
-    config = YAML.load(File.read('VERSION.yml'))
-    version = "#{config[:major]}.#{config[:minor]}.#{config[:patch]}"
+  result = `gem build #{gemspec_path} 2>&1`
+  if result =~ /Successfully built/
+    system "gem uninstall -x #{spec.name} 2>&1"
+    system "gem install #{spec.file_name} --no-rdoc --no-ri 2>&1"
   else
-    version = ""
+    raise result
   end
-
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title = "pipeline #{version}"
-  rdoc.rdoc_files.include('README*')
-  rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-task :default => :spec
+desc 'Take the version in the gemspec, create a git tag and send the gem to rubygems'
+task :release do
+  gemspec_path = Dir['*.gemspec'].first
+  spec = eval(File.read(gemspec_path))
+
+  system "git tag -f -a v#{spec.version} -m 'Version #{spec.version}'"
+  system "git push --tags"
+  system "gem push #{spec.file_name}"
+end
+

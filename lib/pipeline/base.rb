@@ -165,8 +165,6 @@ module Pipeline
     class_inheritable_accessor :failure_mode, :instance_writer => false
     self.failure_mode = :pause
 
-    define_callbacks :before_pipeline, :after_pipeline
-
     # Defines the stages of this pipeline. Please refer to section
     # <em>"Pipeline Stages"</em> above
     def self.define_stages(stages)
@@ -212,23 +210,25 @@ module Pipeline
     # +delayed_job+. Auto-retry would not work in this case, though.
     def perform
       _check_valid_status
+
+      self.attempts += 1
+      self.status = :in_progress
       begin
-        _setup
         stages.each do |stage|
           stage.perform unless stage.completed?
         end
-        _complete_with_status(:completed)
+        self.status = :completed
       rescue IrrecoverableError
-        _complete_with_status(:failed)
+        self.status = :failed
       rescue RecoverableError => e
         if e.input_required?
-          _complete_with_status(:paused)
+          self.status = :paused
         else
-          _complete_with_status(:retry)
+          self.status = :retry
           raise e
         end
       rescue Exception
-        _complete_with_status(failure_mode == :cancel ? :failed : :paused)
+        self.status = failure_mode == :cancel ? :failed : :paused
       end
     end
 
@@ -236,7 +236,7 @@ module Pipeline
     # an invalid state for cancelling (e.g. already cancelled, or completed)
     def cancel
       _check_valid_status
-      _complete_with_status(:failed)
+      self.status = :failed
     end
 
     # Attempts to resume this pipeline. Raises InvalidStatusError if pipeline is in
@@ -253,17 +253,6 @@ module Pipeline
     def _check_valid_status
       reload unless new_record?
       raise InvalidStatusError.new(status) unless ok_to_resume?
-    end
-
-    def _setup
-      self.attempts += 1
-      self.status = :in_progress
-      run_callbacks(:before_pipeline)
-    end
-
-    def _complete_with_status(status)
-      self.status = status
-      run_callbacks(:after_pipeline)
     end
   end
 end

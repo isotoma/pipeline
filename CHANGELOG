@@ -1,3 +1,11 @@
+0.1.0
+=====
+
+* Updated to Rails 3.0
+* Removed Jewler
+* Added bundler
+* Removed callbacks on pipeline as never used
+
 0.0.9
 =====
 

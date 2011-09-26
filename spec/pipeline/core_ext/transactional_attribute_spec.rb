@@ -1,9 +1,9 @@
-require 'spec/spec_helper'
+require 'spec_helper'
 
 # Reusing stage table to simplify database integration tests
 class FakeForTransactionalAttribute < ActiveRecord::Base
   set_table_name :pipeline_stages
-  
+
   transactional_attr :status
 end
 
@@ -13,10 +13,11 @@ module Pipeline
       obj = FakeForTransactionalAttribute.create(:status => "started")
       obj.status.should == "started"
       obj.reload.status.should == "started"
-      
+
       obj.status = "finished"
       obj.status.should == "finished"
       obj.reload.status.should == "finished"
     end
   end
 end
+

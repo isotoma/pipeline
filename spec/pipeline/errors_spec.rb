@@ -1,4 +1,4 @@
-require 'spec/spec_helper'
+require 'spec_helper'
 
 module Pipeline
   describe InvalidPipelineError do
@@ -32,7 +32,7 @@ module Pipeline
       lambda {raise RecoverableError.new, "message"}.should raise_error(RecoverableError, "message")
       lambda {raise RecoverableError.new("message")}.should raise_error(RecoverableError, "message")
     end
-    
+
     it "might require user input" do
       error = RecoverableError.new("message", true)
       error.should be_input_required
@@ -44,3 +44,4 @@ module Pipeline
     end
   end
 end
+

@@ -136,15 +136,6 @@ module Pipeline
       end
 
       # Standard ActiveRecord callback to setup initial name and status
-      # when a new stage is instantiated. If you override this callback, make
-      # sure to call +super+:
-      #
-      #   class SampleStage < Pipeline::Stage::Base
-      #     def after_initialize
-      #       super
-      #       self[:special_attribute] ||= "standard value"
-      #     end
-      #   end
       after_initialize :init_stages
       def init_stages
         if new_record?
@@ -169,33 +160,28 @@ module Pipeline
       def perform
         reload unless new_record?
         raise InvalidStatusError.new(status) unless [:not_started, :failed].include?(status)
-        begin
-          _setup
-          run
-          self.status = :completed
-        rescue Exception => e
-          logger.info("Error on stage #{default_name}: #{e.message}")
-          logger.info(e.backtrace.join("\n"))
-          self.message = e.message
-          self.status = :failed
-          raise e
-        ensure
-          run_callbacks(:after_stage)
+        e = nil
+        run_callbacks :stage do
+          begin
+            self.attempts += 1
+            self.message = nil
+            self.status = :in_progress
+            run
+            self.status = :completed
+          rescue Exception => e
+            logger.info("Error on stage #{default_name}: #{e.message}")
+            logger.info(e.backtrace.join("\n"))
+            self.message = e.message
+            self.status = :failed
+          end
         end
+        raise e if e
       end
 
       # Abstract method to be implemented by all subclasses that represents the
       # action to be performed by this stage
       def run
         raise "This method must be implemented by any subclass of Pipeline::Stage::Base"
-      end
-
-      private
-      def _setup
-        self.attempts += 1
-        self.message = nil
-        self.status = :in_progress
-        run_callbacks(:before_stage)
       end
     end
   end

@@ -1,11 +1,4 @@
-require 'rubygems'
-gem 'sqlite3-ruby'
-
-ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :database => 'pipeline.sqlite')
-ActiveRecord::Migration.verbose = false
-
 ActiveRecord::Schema.define do
-
   create_table :delayed_jobs, :force => true do |table|
     table.integer  :priority, :default => 0
     table.integer  :attempts, :default => 0
@@ -35,9 +28,5 @@ ActiveRecord::Schema.define do
     t.integer :attempts, :default => 0
     t.timestamps
   end
-
 end
 
-at_exit do
-  File.delete("pipeline.sqlite") if File.exists?("pipeline.sqlite")
-end

@@ -6,6 +6,7 @@ gem 'sqlite3-ruby'
 gem 'guard'
 gem 'guard-bundler'
 gem 'guard-rspec'
+gem 'rake'
 gem 'rspec'
 gem 'yard'
 

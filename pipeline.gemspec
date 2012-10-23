@@ -15,6 +15,7 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'activerecord', '3.0.17'
   s.add_dependency 'delayed_job', '3.0.3'
+  s.add_dependency 'delayed_job_active_record'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- spec/*`.split("\n")

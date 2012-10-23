@@ -3,7 +3,7 @@ require 'base64'
 
 Gem::Specification.new do |s|
   s.name        = 'pipeline'
-  s.version     = '0.1.1'
+  s.version     = '0.1.2'
   s.date        = '2011-09-26'
   s.authors     = ["Danilo Sato", 'Phil Thompson']
   s.email       = ['danilo@dtsato.com', Base64.decode64("cGhpbEBlbGVjdHJpY3Zpc2lvbnMuY29t\n")]

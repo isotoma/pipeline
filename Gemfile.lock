@@ -1,9 +1,10 @@
 PATH
   remote: .
   specs:
-    pipeline (0.1.1)
+    pipeline (0.1.3)
       activerecord (= 3.0.17)
       delayed_job (= 3.0.3)
+      delayed_job_active_record
 
 GEM
   remote: http://rubygems.org/
@@ -22,6 +23,9 @@ GEM
     builder (2.1.2)
     delayed_job (3.0.3)
       activesupport (~> 3.0)
+    delayed_job_active_record (0.3.2)
+      activerecord (> 2.1.0)
+      delayed_job (~> 3.0.0)
     diff-lcs (1.1.3)
     ffi (1.0.9)
     guard (0.7.0)

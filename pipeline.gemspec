@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project         = 'pipeline'
 
   s.add_dependency 'activerecord', '3.0.17'
-  s.add_dependency 'delayed_job', '2.1.4'
+  s.add_dependency 'delayed_job', '3.0.3'
 
   s.files         = `git ls-files`.split("\n")
   s.test_files    = `git ls-files -- spec/*`.split("\n")

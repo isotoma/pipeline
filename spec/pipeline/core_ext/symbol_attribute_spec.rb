@@ -2,7 +2,7 @@ require 'spec_helper'
 
 # Reusing stage table to simplify database integration tests
 class FakeForSymbolAttribute < ActiveRecord::Base
-  set_table_name :pipeline_stages
+  self.table_name = 'pipeline_stages'
 
   symbol_attr :status
 end

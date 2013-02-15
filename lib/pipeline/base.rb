@@ -143,7 +143,7 @@ module Pipeline
   # example above), as an inline block, or as a +Callback+ object, as a regular
   # +ActiveRecord+ callback.
   class Base < ActiveRecord::Base
-    set_table_name :pipeline_instances
+    self.table_name = 'pipeline_instances'
 
     # :not_started ---> :in_progress ---> :completed / :failed
     #                       ^ |
@@ -159,10 +159,10 @@ module Pipeline
       :foreign_key => 'pipeline_instance_id',
       :dependent => :destroy
 
-    class_inheritable_accessor :defined_stages, :instance_writer => false
+    class_attribute :defined_stages, :instance_writer => false
     self.defined_stages = []
 
-    class_inheritable_accessor :failure_mode, :instance_writer => false
+    class_attribute :failure_mode, :instance_writer => false
     self.failure_mode = :pause
 
     # Defines the stages of this pipeline. Please refer to section

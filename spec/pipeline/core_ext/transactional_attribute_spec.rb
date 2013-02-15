@@ -2,7 +2,7 @@ require 'spec_helper'
 
 # Reusing stage table to simplify database integration tests
 class FakeForTransactionalAttribute < ActiveRecord::Base
-  set_table_name :pipeline_stages
+  self.table_name = 'pipeline_stages'
 
   transactional_attr :status
 end

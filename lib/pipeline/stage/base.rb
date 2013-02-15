@@ -102,7 +102,7 @@ module Pipeline
     # example above), as an inline block, or as a +Callback+ object, as a regular
     # +ActiveRecord+ callback.
     class Base < ActiveRecord::Base
-      set_table_name :pipeline_stages
+      self.table_name = 'pipeline_stages'
 
       # :not_started ---> :in_progress ---> :completed
       #                       ^ |
@@ -115,7 +115,7 @@ module Pipeline
       # Allows access to the associated pipeline
       belongs_to :pipeline, :class_name => "Pipeline::Base", :foreign_key => 'pipeline_instance_id'
 
-      class_inheritable_accessor :default_name, :instance_writer => false
+      class_attribute :default_name, :instance_writer => false
 
       define_model_callbacks :stage
 

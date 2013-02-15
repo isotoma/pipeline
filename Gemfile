@@ -1,8 +1,7 @@
 source :rubygems
 gemspec
 
-
-gem 'sqlite3-ruby'
+gem 'sqlite3'
 gem 'guard'
 gem 'guard-bundler'
 gem 'guard-rspec'

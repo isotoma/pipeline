@@ -28,13 +28,17 @@ module Pipeline
           EOD
         end
       end
-      
+
       alias_method :symbol_attr, :symbol_attrs
     end
   end
 end
 
 class Symbol #:nodoc:
+  def id
+    self.to_s
+  end
+
   def quoted_id
     "'#{ActiveRecord::Base.connection.quote_string(self.to_s)}'"
   end
